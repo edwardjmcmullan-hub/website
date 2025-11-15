@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cucumber Chaos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --neon-green: #39ff14;
+      --neon-yellow: #ffff33;
+      --dark-bg: #111111;
+      --accent-pink: #ff00ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--neon-green);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #000;
+      overflow-x: hidden;
+    }
+
+    /* Top music bar */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.9);
+      color: var(--neon-yellow);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 1rem;
+      z-index: 100;
+    }
+
+    header h1 {
+      font-size: 1rem;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .music-controls {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .music-button {
+      background: var(--accent-pink);
+      color: #000;
+      border: none;
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .music-button:hover {
+      filter: brightness(1.2);
+    }
+
+    .track-name {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    /* Layout */
+    .page-wrapper {
+      min-height: 100vh;
+      padding-top: 3rem; /* space for fixed header */
+      padding-bottom: 4rem; /* space for sunflowers */
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+    }
+
+    main {
+      flex: 1;
+      padding: 2rem 1.5rem;
+      max-width: 900px;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    button,
+    .link-button {
+      cursor: pointer;
+      border-radius: 999px;
+      border: 2px solid #000;
+      padding: 0.8rem 1rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: var(--dark-bg);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+    }
+
+    button:hover,
+    .link-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+      filter: brightness(1.1);
+    }
+
+    /* Special cucumber button */
+    .cucumber-button {
+      background: #000000;
+      color: var(--neon-yellow);
+      border-color: var(--neon-yellow);
+    }
+
+    .cucumber-button a {
+      color: inherit;
+      text-decoration: none;
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* GIF on the side */
+    .side-panel {
+      width: 260px;
+      max-width: 30vw;
+      padding: 2rem 1rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .gif-placeholder {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      border-radius: 1rem;
+      border: 3px dashed #000;
+      background: rgba(255, 255, 255, 0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .gif-placeholder img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Image slots */
+    .image-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .image-slot {
+      border-radius: 1rem;
+      border: 3px dashed #000;
+      background: rgba(255, 255, 255, 0.5);
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .image-slot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Sunflowers along the bottom */
+    .sunflower-strip {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3rem;
+      background: linear-gradient(to top, #f7d36b, #ffeaa7);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 0.3rem;
+      z-index: 50;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .sunflower-strip span {
+      font-size: 2rem;
+      margin: 0 0.1rem;
+      transform-origin: bottom center;
+      animation: sway 2.5s ease-in-out infinite alternate;
+    }
+
+    .sunflower-strip span:nth-child(even) {
+      animation-delay: 0.7s;
+    }
+
+    @keyframes sway {
+      0% { transform: translateY(0) rotate(-3deg); }
+      100% { transform: translateY(-2px) rotate(3deg); }
+    }
+
+    /* Flash overlay for "click me :)" */
+    .flash-overlay {
+      position: fixed;
+      inset: 0;
+      background: #ffffff;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 999;
+      transition: opacity 0.25s ease;
+    }
+
+    .flash-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 800px) {
+      .page-wrapper {
+        flex-direction: column-reverse;
+      }
+
+      .side-panel {
+        width: 100%;
+        max-width: none;
+        padding-top: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Full-screen white flash for the "click me :)" button -->
+  <div id="flash-overlay" class="flash-overlay"></div>
+
+  <!-- Top music bar -->
+  <header>
+    <h1>Chaotic Garden Radio</h1>
+    <div class="track-name" id="track-name">Track 1: song1</div>
+    <div class="music-controls">
+      <button class="music-button" id="play-pause-btn">Play</button>
+      <button class="music-button" id="next-track-btn">Next ▶</button>
+    </div>
+  </header>
+
+  <div class="page-wrapper">
+    <main>
+      <section class="button-grid">
+        <!-- Main cucumber link button -->
+        <button class="cucumber-button">
+          <a href="https://en.wikipedia.org/wiki/List_of_sexually_active_popes" target="_blank" rel="noopener noreferrer">
+            I have a fridge full of cucumbers by my car
+          </a>
+        </button>
+
+        <!-- Fart button -->
+        <button id="fart-btn">Fart 💨</button>
+
+        <!-- Click me button: plays sound + flash white -->
+        <button id="click-me-btn">Click me :)</button>
+
+        <!-- Squawk button -->
+        <button id="squawk-btn">Squawk 🐦</button>
+      </section>
+
+      <!-- Image slots -->
+      <section class="image-row">
+        <div class="image-slot">
+          <!-- Image slot 1: rock -->
+          <img id="image-slot-1" src="assets/images/rock.png" alt="Image 1 - rock">
+        </div>
+
+        <div class="image-slot">
+          <!-- Image slot 2: flyingdog -->
+          <img id="image-slot-2" src="assets/images/flyingdog.png" alt="Image 2 - flying dog">
+        </div>
+      </section>
+    </main>
+
+    <!-- Side GIF panel -->
+    <aside class="side-panel">
+      <div class="gif-placeholder">
+        <!-- Side GIF -->
+        <img id="side-gif" src="assets/images/side-gif.gif" alt="Side GIF">
+      </div>
+    </aside>
+  </div>
+
+  <!-- Sunflowers along the bottom -->
+  <div class="sunflower-strip">
+    <span>🌻</span><span>🌻</span><span>🌻</span><span>🌻</span><span>🌻</span>
+    <span>🌻</span><span>🌻</span><span>🌻</span><span>🌻</span><span>🌻</span>
+    <span>🌻</span><span>🌻</span><span>🌻</span><span>🌻</span><span>🌻</span>
+  </div>
+
+  <!-- Audio elements (hidden) -->
+  <audio id="bg-audio" preload="auto"></audio>
+
+  <!-- Audio for sound effects -->
+  <audio id="fart-audio"></audio>
+  <audio id="click-me-audio"></audio>
+  <audio id="squawk-audio"></audio>
+
+  <script>
+    /* -------------------------------
+       BACKGROUND MUSIC PLAYLIST
+       ------------------------------- */
+
+    const playlist = [
+      "assets/audio/song1.mp3",
+      "assets/audio/song2.mp3",
+      "assets/audio/song3.mp3"
+    ];
+
+    const trackNames = [
+      "song1",
+      "song2",
+      "song3"
+    ];
+
+    const bgAudio = document.getElementById('bg-audio');
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const nextTrackBtn = document.getElementById('next-track-btn');
+    const trackNameDisplay = document.getElementById('track-name');
+
+    let currentTrackIndex = 0;
+    let isPlaying = false;
+
+    function loadTrack(index) {
+      if (!playlist.length) {
+        trackNameDisplay.textContent = "No tracks in playlist";
+        return;
+      }
+      currentTrackIndex = (index + playlist.length) % playlist.length;
+      bgAudio.src = playlist[currentTrackIndex];
+      const name = trackNames[currentTrackIndex] || `Track ${currentTrackIndex + 1}`;
+      trackNameDisplay.textContent = `Track ${currentTrackIndex + 1}: ${name}`;
+    }
+
+    function playMusic() {
+      if (!playlist.length) {
+        alert("No tracks in the playlist yet.");
+        return;
+      }
+      if (!bgAudio.src) {
+        loadTrack(0);
+      }
+      bgAudio.play()
+        .then(() => {
+          isPlaying = true;
+          playPauseBtn.textContent = "Pause";
+        })
+        .catch(err => {
+          console.warn("Autoplay blocked until user interaction:", err);
+        });
+    }
+
+    function pauseMusic() {
+      bgAudio.pause();
+      isPlaying = false;
+      playPauseBtn.textContent = "Play";
+    }
+
+    function togglePlayPause() {
+      if (isPlaying) {
+        pauseMusic();
+      } else {
+        playMusic();
+      }
+    }
+
+    function nextTrack() {
+      if (!playlist.length) return;
+      loadTrack(currentTrackIndex + 1);
+      if (isPlaying) {
+        bgAudio.play().catch(err => console.warn(err));
+      }
+    }
+
+    playPauseBtn.addEventListener('click', togglePlayPause);
+    nextTrackBtn.addEventListener('click', nextTrack);
+
+    bgAudio.addEventListener('ended', () => {
+      nextTrack();
+    });
+
+    // Load first track info on page load
+    if (playlist.length) {
+      loadTrack(0);
+    }
+
+    /* -----------------------------------
+       SOUND EFFECTS
+       ----------------------------------- */
+
+    const fartAudio = document.getElementById('fart-audio');
+    const clickMeAudio = document.getElementById('click-me-audio');
+    const squawkAudio = document.getElementById('squawk-audio');
+
+    // Use your actual audio files:
+    fartAudio.src = "assets/audio/fart.mp3";
+    clickMeAudio.src = "assets/audio/click-scare.mp3";
+    squawkAudio.src = "assets/audio/squawk.mp3";
+
+    const fartBtn = document.getElementById('fart-btn');
+    const clickMeBtn = document.getElementById('click-me-btn');
+    const squawkBtn = document.getElementById('squawk-btn');
+    const flashOverlay = document.getElementById('flash-overlay');
+
+    function playSound(audioElement) {
+      if (!audioElement.src) {
+        alert("No sound file set for this button.");
+        return;
+      }
+      audioElement.currentTime = 0;
+      audioElement.play().catch(err => console.warn("Sound blocked until interaction:", err));
+    }
+
+    fartBtn.addEventListener('click', () => {
+      playSound(fartAudio);
+    });
+
+    clickMeBtn.addEventListener('click', () => {
+      playSound(clickMeAudio);
+      flashScreenForSeconds(3); // screen goes white for a few seconds
+    });
+
+    squawkBtn.addEventListener('click', () => {
+      playSound(squawkAudio);
+    });
+
+    function flashScreenForSeconds(seconds) {
+      flashOverlay.classList.add('active');
+      setTimeout(() => {
+        flashOverlay.classList.remove('active');
+      }, seconds * 1000);
+    }
+  </script>
+</body>
+</html>
