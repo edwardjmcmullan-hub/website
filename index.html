@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Basia's website</title>
+  <title>Cucumber Chaos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root {
@@ -200,7 +200,7 @@
       100% { transform: translateY(-2px) rotate(3deg); }
     }
 
-    /* Flash overlay (now fade-in) */
+    /* Flash overlay (fade in/out) */
     .flash-overlay {
       position: fixed;
       inset: 0;
@@ -208,7 +208,7 @@
       opacity: 0;
       pointer-events: none;
       z-index: 999;
-      transition: opacity 1s ease; /* FADE IN */
+      transition: opacity 1s ease;
     }
 
     .flash-overlay.active {
@@ -227,10 +227,12 @@
 </head>
 
 <body>
+  <!-- White flash layer -->
   <div id="flash-overlay" class="flash-overlay"></div>
 
+  <!-- Music bar -->
   <header>
-    <h1>Music</h1>
+    <h1>Chaotic Garden Radio</h1>
     <div class="track-name" id="track-name">Track 1: song1</div>
     <div class="music-controls">
       <button class="music-button" id="play-pause-btn">Play</button>
@@ -242,7 +244,7 @@
     <main>
       <section class="button-grid">
         <button class="cucumber-button">
-          <a href="https://en.wikipedia.org/wiki/List_of_sexually_active_popes" target="_blank">
+          <a href="https://en.wikipedia.org/wiki/List_of_sexually_active_popes" target="_blank" rel="noopener noreferrer">
             I have a fridge full of cucumbers by my car
           </a>
         </button>
@@ -275,12 +277,14 @@
     <span>🌻</span><span>🌻</span><span>🌻</span><span>🌻</span><span>🌻</span>
   </div>
 
+  <!-- Audio elements -->
   <audio id="bg-audio"></audio>
   <audio id="fart-audio"></audio>
   <audio id="click-me-audio"></audio>
   <audio id="squawk-audio"></audio>
 
   <script>
+    /* ------------ MUSIC ------------ */
     const playlist = [
       "assets/audio/song1.mp3",
       "assets/audio/song2.mp3",
@@ -307,7 +311,7 @@
       bgAudio.play().then(() => {
         isPlaying = true;
         playPauseBtn.textContent = "Pause";
-      });
+      }).catch(() => {});
     }
 
     function pauseMusic() {
@@ -322,40 +326,61 @@
 
     nextTrackBtn.addEventListener('click', () => {
       loadTrack(currentTrackIndex + 1);
-      if (isPlaying) bgAudio.play();
+      if (isPlaying) bgAudio.play().catch(() => {});
     });
 
     bgAudio.addEventListener('ended', () => {
       loadTrack(currentTrackIndex + 1);
-      bgAudio.play();
+      bgAudio.play().catch(() => {});
     });
 
-    loadTrack(0);
+    // Initialise first track
+    if (playlist.length) {
+      loadTrack(0);
+    }
 
-    /* Sound effects */
+    /* --------- SOUND EFFECTS + FLASH --------- */
+    const fartAudio = document.getElementById('fart-audio');
+    const clickMeAudio = document.getElementById('click-me-audio');
+    const squawkAudio = document.getElementById('squawk-audio');
+
     fartAudio.src = "assets/audio/fart.mp3";
     clickMeAudio.src = "assets/audio/click-scare.mp3";
     squawkAudio.src = "assets/audio/squawk.mp3";
 
-    fartBtn.addEventListener('click', () => fartAudio.play());
-    squawkBtn.addEventListener('click', () => squawkAudio.play());
+    const fartBtn = document.getElementById('fart-btn');
+    const clickMeBtn = document.getElementById('click-me-btn');
+    const squawkBtn = document.getElementById('squawk-btn');
+    const flashOverlay = document.getElementById('flash-overlay');
 
-    function flashScreenForSeconds(seconds) {
-      const overlay = document.getElementById('flash-overlay');
-      overlay.classList.add('active');
-      setTimeout(() => overlay.classList.remove('active'), seconds * 1000);
+    function playSound(audioElement) {
+      audioElement.currentTime = 0;
+      audioElement.play().catch(() => {});
     }
 
-    /* Click Me button: wait 1 sec, then fade-in flash */
+    fartBtn.addEventListener('click', () => {
+      playSound(fartAudio);
+    });
+
+    squawkBtn.addEventListener('click', () => {
+      playSound(squawkAudio);
+    });
+
+    function flashScreenForSeconds(seconds) {
+      flashOverlay.classList.add('active');
+      setTimeout(() => {
+        flashOverlay.classList.remove('active');
+      }, seconds * 1000);
+    }
+
+    // Click Me: play sound immediately, then flash after 1 second
     clickMeBtn.addEventListener('click', () => {
-      clickMeAudio.play();
+      playSound(clickMeAudio);
 
       setTimeout(() => {
-        flashScreenForSeconds(3);
-      }, 1000); // ← 1 second delay
+        flashScreenForSeconds(3); // fades in (1s), stays, then fades out when class is removed
+      }, 1000);
     });
   </script>
-
 </body>
 </html>
-
